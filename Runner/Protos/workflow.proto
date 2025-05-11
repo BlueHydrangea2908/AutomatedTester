@@ -1,0 +1,86 @@
+﻿syntax = "proto3";
+package workflow;
+option csharp_namespace = "Workflow.Protos";
+
+// Simple start RPC
+service WorkflowRunner {
+  rpc DeployDefinition(DefinitionRequest) returns (DefinitionReply);
+  rpc StartWorkflow  (StartRequest     ) returns (StartReply);
+  rpc RunWorkflow    (stream RunRequest) returns (stream RunResponse);
+}
+
+message StartRequest {
+  string definitionId = 1;
+  int32  version      = 2;
+  YourDto payload     = 3;
+}
+
+message StartReply {
+  string instanceId = 1;
+}
+
+// Bidirectional streaming messages
+message RunRequest {
+  oneof payload {
+    StartWorkflow start   = 1;
+    ControlMessage control = 2;
+  }
+}
+
+message StartWorkflow {
+  string definitionId = 1;
+  int32  version      = 2;
+  YourDto payload     = 3;
+}
+
+enum ControlType {
+  PAUSE     = 0;
+  RESUME    = 1;
+  CANCEL    = 2;
+  HEARTBEAT = 3;
+}
+
+message ControlMessage {
+  ControlType type       = 1;
+  string       instanceId = 2;
+}
+
+message RunResponse {
+  oneof payload {
+    WorkflowStatus status        = 1;
+    StepError       error         = 2;
+    WorkflowComplete complete    = 3;
+  }
+}
+
+message WorkflowStatus {
+  string instanceId = 1;
+  string currentStep= 2;
+  string message    = 3;
+}
+
+message StepError {
+  string instanceId = 1;
+  string stepId     = 2;
+  string error      = 3;
+}
+
+message WorkflowComplete {
+  string instanceId = 1;
+  bool   success    = 2;
+}
+
+// Define your DTO here so generated code includes YourDto
+message YourDto {
+  string testName = 1;
+  map<string,string> parameters = 2;
+}
+
+message DefinitionRequest {
+  string definitionJson = 1;      // the full JSON or YAML workflow DSL
+}
+
+message DefinitionReply {
+  bool success           = 1;
+  string errorMessage    = 2;
+}

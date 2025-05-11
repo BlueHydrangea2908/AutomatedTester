@@ -1,0 +1,33 @@
+syntax = "proto3";
+package WorkflowGrpc;
+
+option csharp_namespace = "WorkflowGrpc";
+
+message UploadWorkflowRequest {
+  string id              = 1;
+  int32  version         = 2;
+  string json_definition = 3;
+  bytes  plugin_assembly = 4;   // raw DLL bytes :contentReference[oaicite:0]{index=0}
+}
+
+message UploadReply {
+  bool   success = 1;
+  string error   = 2;
+}
+
+message StartRequest {
+  string workflow_id = 1;
+  int32  version     = 2;
+  string json_data   = 3;
+}
+
+message StartReply {
+  bool   success     = 1;
+  string instance_id = 2;
+  string error       = 3;
+}
+
+service WorkflowService {
+  rpc UploadWorkflow(UploadWorkflowRequest) returns (UploadReply);
+  rpc StartWorkflow (StartRequest)           returns (StartReply);
+}
